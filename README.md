@@ -135,11 +135,11 @@ provides a short managerial interpretation.
 
 ### Input Interface
 
-![Application Input Interface](screenshots/app_inputs.png)
+![Application Input Interface](app_inputs.png)
 
 ### Prediction Output
 
-![Application Prediction Output](screenshots/app_prediction.png)
+![Application Prediction Output](app_prediction.png)
 
 ## Project Structure
 
