@@ -135,11 +135,11 @@ provides a short managerial interpretation.
 
 ### Input Interface
 
-![Application Input Interface](app_inputs.png)
+![Application Input Interface](screenshots/app_inputs.png)
 
 ### Prediction Output
 
-![Application Prediction Output](app_prediction.png)
+![Application Prediction Output](screenshots/app_prediction.png)
 
 ## Project Structure
 
@@ -156,3 +156,16 @@ project/
 └── screenshots/
     ├── app_inputs.png
     └── app_prediction.png
+---
+
+## Copyright
+
+© 2026 Arin Bakshi. All Rights Reserved.
+
+This project, including its original source code, documentation, application
+interface, and project-specific model files, may not be copied, modified,
+redistributed, published, or used commercially without prior written
+permission from the author.
+
+Third-party libraries, frameworks, course materials, and other externally
+sourced components remain subject to their respective licenses and ownership.

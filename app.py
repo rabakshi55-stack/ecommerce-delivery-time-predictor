@@ -341,3 +341,23 @@ with st.expander("About the Prediction Model"):
         represent a meaningful explanatory variable.
         """
     )
+# ---------------------------------------------------------
+# COPYRIGHT NOTICE
+# This footer displays the ownership notice at the bottom
+# of the public Streamlit application.
+# ---------------------------------------------------------
+
+# Add a horizontal divider before the copyright footer
+st.markdown("---")
+
+# Display the copyright notice in the center of the app
+st.markdown(
+    """
+    <div style="text-align: center; font-size: 0.85rem;">
+        © 2026 Arin Bakshi. All Rights Reserved.<br>
+        Unauthorized copying, modification, redistribution, or commercial
+        use of this project is prohibited without prior written permission.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
