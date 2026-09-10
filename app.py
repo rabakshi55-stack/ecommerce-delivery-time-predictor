@@ -1,24 +1,27 @@
 
-# Import Streamlit for creating the interactive web application
+# ============================================================
+# E-COMMERCE DELIVERY TIME PREDICTION APPLICATION
+# ============================================================
+
+# Streamlit creates the web application interface
 import streamlit as st
 
-# Import pandas for creating the single-row DataFrame
+# pandas is used to create the one-row DataFrame
 # that will be passed to the trained model
 import pandas as pd
 
-# Import joblib for loading the saved preprocessing + regression Pipeline
+# joblib loads the saved machine-learning pipeline
 import joblib
 
-# Import Path so the application can reliably locate model.pkl
-# in the same folder as app.py
+# Path is used to reliably locate model.pkl
 from pathlib import Path
 
 
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # PAGE CONFIGURATION
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
-# Configure the browser tab and application layout
+# Configure the browser tab and page width
 st.set_page_config(
     page_title="E-Commerce Delivery Time Predictor",
     page_icon="📦",
@@ -26,76 +29,75 @@ st.set_page_config(
 )
 
 
-# ---------------------------------------------------------
-# LOAD THE TRAINED MODEL
-# ---------------------------------------------------------
+# ------------------------------------------------------------
+# LOCATE AND LOAD THE TRAINED MODEL
+# ------------------------------------------------------------
 
-# Identify the folder in which app.py is located
+# Find the exact folder containing app.py
 BASE_DIR = Path(__file__).resolve().parent
 
-# Create the full path to the saved model
+# model.pkl must be stored in the same folder
 MODEL_PATH = BASE_DIR / "model.pkl"
 
 
-# Attempt to load the saved preprocessing + regression Pipeline
-# If model.pkl cannot be found or loaded, the application stops
-# and shows a clear error message instead of crashing silently
+# Load the saved preprocessing + regression pipeline
+# safely so the application does not fail silently.
 try:
+
     model = joblib.load(MODEL_PATH)
 
 except Exception as error:
 
-    # Display the error to the user
     st.error(
-        f"The trained model could not be loaded: {error}"
+        f"Unable to load the prediction model: {error}"
     )
 
-    # Stop the application because predictions cannot be made
+    # Stop the application because predictions cannot
+    # be generated without the trained model.
     st.stop()
 
 
-# ---------------------------------------------------------
-# APPLICATION HEADER
-# ---------------------------------------------------------
+# ------------------------------------------------------------
+# APPLICATION HEADING
+# ------------------------------------------------------------
 
-# Display the application title
-st.title("📦 E-Commerce Delivery Time Predictor")
+st.title(
+    "📦 E-Commerce Delivery Time Predictor"
+)
 
-
-# Explain the purpose of the application
 st.write(
     """
-    This application uses a multiple linear regression model to estimate
-    the delivery time of an e-commerce order based on order, package,
-    warehouse, courier, traffic and shipping characteristics.
+    This application estimates the expected delivery time of an
+    e-commerce order using order, package, warehouse, courier,
+    traffic and shipping information.
     """
 )
 
-
-# Add a visual separator
-st.divider()
-
-
-# ---------------------------------------------------------
-# INPUT SECTION
-# ---------------------------------------------------------
-
-# Display a heading above the user input fields
-st.subheader("Order and Delivery Information")
+st.caption(
+    "Prediction output is expressed in hours."
+)
 
 
-# Create two columns so that the application is easier to use
+# ------------------------------------------------------------
+# USER INPUT SECTION
+# ------------------------------------------------------------
+
+st.subheader(
+    "Enter Order Details"
+)
+
+
+# Use two columns to keep the application compact
 left_column, right_column = st.columns(2)
 
 
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # LEFT-SIDE INPUTS
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
 with left_column:
 
-    # Allow the user to select one of the five valid product categories
-    # These values come from the dataset specification
+    # Product category is a nominal categorical predictor.
     product_category = st.selectbox(
         "Product Category",
         [
@@ -108,8 +110,7 @@ with left_column:
     )
 
 
-    # Allow the user to select one of the three valid shipping modes
-    # These values match the categories used during model training
+    # Shipping mode is a nominal categorical predictor.
     shipping_mode = st.selectbox(
         "Shipping Mode",
         [
@@ -120,43 +121,48 @@ with left_column:
     )
 
 
-    # Accept a positive monetary order value
-    # The data dictionary states that Order_Value must be greater than zero
+    # Order value:
+    # The valid business range used for this project is
+    # approximately ₹300 to ₹15,000.
     order_value = st.number_input(
         "Order Value (₹)",
-        min_value=0.01,
-        value=6000.00,
-        step=100.00
+        min_value=300.0,
+        max_value=15000.0,
+        value=6000.0,
+        step=100.0
     )
 
 
-    # Accept a positive package weight
-    # Package weight cannot logically be zero or negative
+    # Package weight:
+    # Restricted to the valid project range.
     package_weight = st.number_input(
         "Package Weight (kg)",
-        min_value=0.01,
-        value=3.00,
-        step=0.10
+        min_value=0.1,
+        max_value=15.0,
+        value=3.0,
+        step=0.1
     )
 
 
-    # Accept a positive warehouse-to-destination distance
+    # Warehouse distance:
+    # Restricted to the intended range represented by
+    # the valid generated observations.
     warehouse_distance = st.number_input(
         "Warehouse Distance (km)",
-        min_value=0.01,
-        value=400.00,
-        step=10.00
+        min_value=15.0,
+        max_value=950.0,
+        value=800.0,
+        step=10.0
     )
 
 
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # RIGHT-SIDE INPUTS
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
 with right_column:
 
-    # Items_in_Order has a valid range of 1 to 10
-    # Therefore the interface does not allow values outside that range
+    # Number of items is an integer between 1 and 10.
     items_in_order = st.number_input(
         "Items in Order",
         min_value=1,
@@ -166,16 +172,17 @@ with right_column:
     )
 
 
-    # Warehouse processing time must be positive
+    # Valid warehouse processing time used in this project.
     warehouse_processing_hours = st.number_input(
-        "Warehouse Processing Time (Hours)",
-        min_value=0.01,
-        value=3.00,
-        step=0.10
+        "Warehouse Processing Hours",
+        min_value=0.5,
+        max_value=6.0,
+        value=3.0,
+        step=0.1
     )
 
 
-    # Courier_Load_Index has a valid range of 1 to 10
+    # Courier Load Index uses a 1-10 scale.
     courier_load_index = st.number_input(
         "Courier Load Index",
         min_value=1.0,
@@ -185,178 +192,175 @@ with right_column:
     )
 
 
-    # Traffic_Index also has a valid range of 1 to 10
+    # Traffic Index also uses a 1-10 scale.
     traffic_index = st.number_input(
         "Traffic Index",
         min_value=1.0,
         max_value=10.0,
-        value=5.0,
+        value=9.0,
         step=0.1
     )
 
 
-# ---------------------------------------------------------
-# TYPICAL-RANGE WARNINGS
-# ---------------------------------------------------------
-
-# The data dictionary states that Order_Value is typically
-# between ₹300 and ₹15,000.
-# These are not strict validity limits, so the application shows
-# a warning rather than rejecting values outside this range.
-if order_value < 300 or order_value > 15000:
-    st.warning(
-        "Order Value is outside the dataset's typical range of ₹300–₹15,000."
-    )
-
-
-# Package weight is typically between 0.1 and 15 kg
-if package_weight < 0.1 or package_weight > 15:
-    st.warning(
-        "Package Weight is outside the dataset's typical range of 0.1–15 kg."
-    )
-
-
-# Warehouse distance is typically between 15 and 950 km
-if warehouse_distance < 15 or warehouse_distance > 950:
-    st.warning(
-        "Warehouse Distance is outside the dataset's typical range of 15–950 km."
-    )
-
-
-# Warehouse processing time is typically between 0.5 and 6 hours
-if (
-    warehouse_processing_hours < 0.5
-    or warehouse_processing_hours > 6
-):
-    st.warning(
-        "Warehouse Processing Time is outside the dataset's typical range of 0.5–6 hours."
-    )
-
-
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # CREATE MODEL INPUT
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
-# Create a single-row DataFrame using EXACTLY the same predictor names
-# that were used while training the saved preprocessing Pipeline
+# IMPORTANT:
+# These column names exactly match the predictor names
+# used while training the saved machine-learning pipeline.
+#
+# Each value is placed inside a list because we are creating
+# one new observation/row.
+
 input_data = pd.DataFrame(
     {
-        "Product_Category": [product_category],
-        "Shipping_Mode": [shipping_mode],
-        "Order_Value": [order_value],
-        "Package_Weight_Kg": [package_weight],
-        "Warehouse_Distance_Km": [warehouse_distance],
-        "Items_in_Order": [items_in_order],
+        "Order_Value": [
+            order_value
+        ],
+
+        "Package_Weight_Kg": [
+            package_weight
+        ],
+
+        "Warehouse_Distance_Km": [
+            warehouse_distance
+        ],
+
+        "Items_in_Order": [
+            items_in_order
+        ],
+
         "Warehouse_Processing_Hours": [
             warehouse_processing_hours
         ],
-        "Courier_Load_Index": [courier_load_index],
-        "Traffic_Index": [traffic_index]
+
+        "Courier_Load_Index": [
+            courier_load_index
+        ],
+
+        "Traffic_Index": [
+            traffic_index
+        ],
+
+        "Product_Category": [
+            product_category
+        ],
+
+        "Shipping_Mode": [
+            shipping_mode
+        ]
     }
 )
 
 
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # PREDICTION
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
-# Add some spacing before the prediction section
-st.divider()
+st.markdown("---")
 
 
-# Create a button so that the prediction is only generated
-# when the user explicitly requests it
 if st.button(
     "Predict Delivery Time",
     type="primary",
     use_container_width=True
 ):
 
-    # Pass the user's inputs through the saved preprocessing
-    # and multiple linear regression Pipeline
-    prediction = model.predict(input_data)[0]
+    try:
+
+        # Send the new order through the complete saved
+        # preprocessing + Linear Regression pipeline.
+        prediction = model.predict(
+            input_data
+        )[0]
 
 
-    # Prevent a negative prediction from being presented as a valid
-    # business result because delivery time cannot logically be negative
-    if prediction <= 0:
+        # Safety check:
+        # delivery time cannot meaningfully be negative.
+        if prediction <= 0:
 
+            st.error(
+                "The model generated an invalid non-positive "
+                "delivery-time estimate."
+            )
+
+        else:
+
+            # Display prediction prominently
+            st.metric(
+                label="Predicted Delivery Time",
+                value=f"{prediction:.2f} hours"
+            )
+
+
+            # Provide the managerial interpretation required
+            # by the assignment.
+            st.info(
+                f"""
+                Based on the entered order and logistics conditions,
+                the model estimates that this order will require
+                approximately **{prediction:.2f} hours** for delivery.
+
+                A manager can use this estimate for delivery planning,
+                workload coordination and setting customer expectations.
+                """
+            )
+
+    except Exception as error:
+
+        # Clearly display any prediction failure rather than
+        # allowing the application to fail silently.
         st.error(
-            "The model generated an invalid non-positive delivery-time estimate. "
-            "Please review the entered values."
-        )
-
-    else:
-
-        # Display the prediction clearly in HOURS,
-        # which is the unit of the target variable
-        st.metric(
-            label="Predicted Delivery Time",
-            value=f"{prediction:.2f} hours"
+            f"Prediction could not be generated: {error}"
         )
 
 
-        # Provide a short managerial interpretation,
-        # as specifically required by the assignment
-        st.info(
-            f"""
-            Based on the entered order and operational conditions,
-            the model estimates that the order will require approximately
-            **{prediction:.2f} hours** for delivery.
-
-            A manager can use this estimate for delivery planning,
-            operational coordination and customer expectation management.
-            """
-        )
-
-
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 # MODEL INFORMATION
-# ---------------------------------------------------------
+# ------------------------------------------------------------
 
-# Add another separator before the explanatory section
-st.divider()
-
-
-# Provide a short explanation of the underlying model
-with st.expander("About the Prediction Model"):
+with st.expander(
+    "About this prediction model"
+):
 
     st.write(
         """
-        The prediction is generated using a Multiple Linear Regression model.
+        The application uses a Multiple Linear Regression model.
 
-        The model uses the following predictor information:
+        Numerical predictors:
+        - Order Value
+        - Package Weight
+        - Warehouse Distance
+        - Items in Order
+        - Warehouse Processing Hours
+        - Courier Load Index
+        - Traffic Index
 
-        - Product category
-        - Shipping mode
-        - Order value
-        - Package weight
-        - Warehouse distance
-        - Number of items in the order
-        - Warehouse processing time
-        - Courier load index
-        - Traffic index
+        Categorical predictors:
+        - Product Category
+        - Shipping Mode
 
-        Order_ID is not used because it is only an identifier and does not
-        represent a meaningful explanatory variable.
+        The saved model file contains both the preprocessing steps
+        and the trained regression model, ensuring that new inputs
+        are processed consistently with the training workflow.
         """
     )
-# ---------------------------------------------------------
-# COPYRIGHT NOTICE
-# This footer displays the ownership notice at the bottom
-# of the public Streamlit application.
-# ---------------------------------------------------------
 
-# Add a horizontal divider before the copyright footer
+
+# ------------------------------------------------------------
+# COPYRIGHT
+# ------------------------------------------------------------
+
 st.markdown("---")
 
-# Display the copyright notice in the center of the app
 st.markdown(
     """
-    <div style="text-align: center; font-size: 0.85rem;">
+    <div style="text-align:center; font-size:0.82rem;">
         © 2026 Arin Bakshi. All Rights Reserved.<br>
-        Unauthorized copying, modification, redistribution, or commercial
-        use of this project is prohibited without prior written permission.
+        Unauthorized copying, modification, redistribution or
+        commercial use of this project is prohibited without
+        prior written permission.
     </div>
     """,
     unsafe_allow_html=True

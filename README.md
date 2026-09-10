@@ -2,170 +2,297 @@
 
 ## Project Overview
 
-This project develops a Multiple Linear Regression model to estimate the
-delivery time of an e-commerce order.
+This project develops and deploys a Multiple Linear Regression model to
+predict e-commerce delivery time in hours using order, package, warehouse,
+courier, traffic, product-category and shipping information.
 
-The project covers the complete workflow from raw business data to a
-deployed prediction application, including data-quality assessment,
-regression-assumption diagnostics, model training, evaluation, model
-persistence, and deployment using Streamlit.
+The project covers the complete workflow from raw data-quality assessment
+and regression-assumption diagnosis to model evaluation and deployment
+through an interactive Streamlit web application.
 
-## Business Problem
+---
 
-Accurate delivery-time estimation can support e-commerce managers in
-delivery planning, operational coordination, logistics management, and
-customer expectation management.
+## Business Objective
 
-The model predicts:
+The objective is to estimate the expected delivery time of a new
+e-commerce order.
 
-**Delivery_Time_Hours**
+The prediction can support managers in:
+
+- Delivery planning
+- Logistics coordination
+- Courier workload planning
+- Setting customer delivery expectations
+
+---
+
+## Target Variable
+
+`Delivery_Time_Hours`
+
+The predicted output is expressed in **hours**.
+
+---
+
+## Predictor Variables
+
+### Numerical Predictors
+
+- `Order_Value`
+- `Package_Weight_Kg`
+- `Warehouse_Distance_Km`
+- `Items_in_Order`
+- `Warehouse_Processing_Hours`
+- `Courier_Load_Index`
+- `Traffic_Index`
+
+### Categorical Predictors
+
+- `Product_Category`
+- `Shipping_Mode`
+
+`Order_ID` is treated only as an identifier and is not used as a
+regression predictor.
+
+---
 
 ## Dataset
 
-The dataset contains e-commerce order and operational characteristics.
+The raw dataset contains:
 
-### Predictor Variables
+- **3,232 rows**
+- **11 columns**
+- **3,200 unique Order IDs**
 
-The model uses the following predictors:
+After removing exact duplicate records and observations with missing target
+values, **3,192 usable observations** remained.
 
-- Product_Category
-- Shipping_Mode
-- Order_Value
-- Package_Weight_Kg
-- Warehouse_Distance_Km
-- Items_in_Order
-- Warehouse_Processing_Hours
-- Courier_Load_Index
-- Traffic_Index
+The raw dataset intentionally contains data-quality issues so that the
+complete cleaning and regression-diagnostic workflow can be demonstrated.
 
-`Order_ID` is retained as an identifier during data analysis but is not
-used as a regression predictor.
+---
 
 ## Data Preparation
 
-The data-preparation workflow includes:
+The following checks and treatments were performed:
 
-- Missing-value analysis and treatment
-- Duplicate detection and removal
-- Standardisation of inconsistent categorical values
-- Identification and correction of impossible values
-- Investigation of data-entry errors
-- Outlier analysis using the IQR method
-- Investigation of influential observations using standardized residuals,
-  leverage, and Cook's Distance
+- Missing-value detection
+- Exact duplicate detection and removal
+- Identification of the target, predictors and identifier
+- Standardization of inconsistent categorical values
+- Detection of logically impossible numerical values
+- Treatment of invalid predictor values as missing
+- Median treatment for numerical missing values
+- Most-frequent-category treatment for categorical missing values
+- IQR-based outlier investigation
+- Standardized residual analysis
+- Leverage analysis
+- Cook's Distance analysis
+- Correction of confirmed data-entry errors
 
-## Linear Regression Assumptions
+Potential statistical outliers were investigated rather than automatically
+removed.
 
-The following assumptions and diagnostics were examined:
+---
 
-- Linearity
-- Multicollinearity using correlation analysis and VIF
-- Independence of errors using the Durbin-Watson statistic
-- Homoscedasticity using residual-versus-fitted analysis and the
-  Breusch-Pagan test
-- Normality of residuals using histogram, Q-Q plot and Jarque-Bera test
-- Outlier and influence analysis using IQR, standardized residuals,
-  leverage and Cook's Distance
+## Linear Regression Assumption Checks
 
-After corrective treatment, the regression model was re-fitted and the
-major assumptions were re-checked.
+The project evaluates the major assumptions of Multiple Linear Regression
+using:
 
-## Model Development
+- Linearity plots
+- Correlation analysis
+- Variance Inflation Factor (VIF)
+- Mean of residuals
+- Durbin-Watson statistic
+- Residuals-versus-fitted plot
+- Breusch-Pagan test
+- Residual histogram
+- Q-Q plot
+- Jarque-Bera test
+- Standardized residuals
+- Leverage
+- Cook's Distance
 
-Multiple Linear Regression was used as the primary predictive model.
+After confirmed data-entry corrections, the regression assumptions were
+re-checked.
 
-An 80:20 train-test split was used for predictive evaluation.
+### Assumption Results After Corrections
 
-The final machine-learning workflow uses a scikit-learn Pipeline so that
-the same preprocessing steps are applied during both training and
-prediction.
+| Diagnostic | Result |
+|---|---:|
+| OLS R-squared | 0.925365 |
+| OLS Adjusted R-squared | 0.925060 |
+| Durbin-Watson | 1.982046 |
+| Breusch-Pagan p-value | 0.308044 |
+| Jarque-Bera p-value | 0.640915 |
+| Residual Skewness | 0.032176 |
+| Residual Kurtosis | 2.949517 |
 
-### Numerical Preprocessing
+The post-correction residual diagnostics showed substantial improvement
+compared with the initial uncorrected regression.
 
-Missing numerical predictor values are imputed using the median.
+---
 
-### Categorical Preprocessing
+## Machine Learning Workflow
+
+The final predictive workflow uses an **80/20 train-test split** with
+`random_state=42`.
+
+A scikit-learn Pipeline is used so that preprocessing and prediction are
+performed consistently.
+
+### Numerical Processing
+
+Missing numerical predictor values are imputed using the median learned
+from the training data.
+
+### Categorical Processing
 
 Missing categorical values are imputed using the most frequent category.
 
-Nominal categorical predictors are converted using one-hot encoding.
+Categorical predictors are encoded using:
 
-## Model Evaluation
+`OneHotEncoder(drop="first", handle_unknown="ignore")`
 
-The model is evaluated using:
+### Model
 
-- R-squared
-- Adjusted R-squared
-- Mean Absolute Error (MAE)
-- Mean Squared Error (MSE)
-- Root Mean Squared Error (RMSE)
-- Residual analysis
+`LinearRegression`
 
-The detailed model results and diagnostic outputs are available in
-`model_training.ipynb`.
+---
+
+## Model Performance
+
+The final train-test evaluation produced:
+
+| Metric | Value |
+|---|---:|
+| Training R-squared | 0.927116 |
+| Training Adjusted R-squared | 0.926743 |
+| Test R-squared | 0.917740 |
+| Test MAE | 3.325331 hours |
+| Test MSE | 17.180302 |
+| Test RMSE | 4.144913 hours |
+
+The test R-squared indicates that approximately **91.77% of the variation
+in delivery time in the unseen test observations is explained by the
+model**.
+
+The Mean Absolute Error indicates an average absolute prediction error of
+approximately **3.33 hours** on the test set.
+
+---
 
 ## Saved Model
 
-The complete preprocessing and Multiple Linear Regression Pipeline is
-saved as:
+The complete preprocessing and Linear Regression workflow is saved as:
 
 `model.pkl`
 
-The Streamlit application loads this saved Pipeline directly and does not
-retrain the model when the application starts.
+The saved object contains:
 
-## Web Application
+- Numerical missing-value treatment
+- Categorical missing-value treatment
+- One-hot encoding
+- Multiple Linear Regression
 
-The Streamlit application allows users to enter:
+After model evaluation was completed, the deployment version of the
+pipeline was fitted on all **3,192 usable observations**.
 
-- Product category
-- Shipping mode
-- Order value
-- Package weight
-- Warehouse distance
-- Number of items
-- Warehouse processing time
-- Courier load index
-- Traffic index
+---
 
-The application then displays the estimated delivery time in hours and
-provides a short managerial interpretation.
+## Streamlit Application
 
-## Application Screenshots
+The Streamlit application:
 
-### Input Interface
+- Loads the saved `model.pkl`
+- Does not retrain the model when the application starts
+- Accepts all required predictor values
+- Performs basic input validation
+- Generates predictions for new orders
+- Displays delivery time in hours
+- Provides a managerial interpretation of the result
 
-![Application Input Interface](screenshots/app_inputs.png)
+### Verified Prediction
 
-### Prediction Output
+The application was verified using:
 
-![Application Prediction Output](screenshots/app_prediction.png)
+- Product Category: Electronics
+- Shipping Mode: Same-Day
+- Order Value: ₹6,000
+- Package Weight: 3 kg
+- Warehouse Distance: 800 km
+- Items in Order: 4
+- Warehouse Processing Hours: 3 hours
+- Courier Load Index: 5
+- Traffic Index: 9
+
+The saved deployment model produced:
+
+**59.69 hours**
+
+---
+
+## Application Screenshot
+
+![Working Streamlit Prediction](screenshots/app_prediction.png)
+
+---
 
 ## Project Structure
 
-```text
-project/
-│
-├── ecommerce_delivery_unclean_data.csv
-├── model_training.ipynb
-├── model.pkl
-├── app.py
-├── requirements.txt
-├── README.md
-│
-└── screenshots/
-    ├── app_inputs.png
-    └── app_prediction.png
+Project files:
+
+- `ecommerce_delivery_unclean_data_3232.csv`
+- `model_training_3232.ipynb`
+- `model.pkl`
+- `app.py`
+- `requirements.txt`
+- `README.md`
+- `screenshots/app_prediction.png`
+
+---
+
+## Running the Application Locally
+
+### Step 1 - Install Dependencies
+
+Run:
+
+`pip install -r requirements.txt`
+
+### Step 2 - Start the Streamlit Application
+
+Run:
+
+`python -m streamlit run app.py`
+
+### Step 3 - Open the Application
+
+Streamlit will provide a local address, normally:
+
+`http://localhost:8501`
+
+---
+
+## Important Usage Note
+
+The application can generate predictions for new orders that were not
+present in the training dataset.
+
+Predictions are most reliable when predictor values remain within or
+reasonably close to the ranges represented by the training data.
+
 ---
 
 ## Copyright
 
 © 2026 Arin Bakshi. All Rights Reserved.
 
-This project, including its original source code, documentation, application
-interface, and project-specific model files, may not be copied, modified,
-redistributed, published, or used commercially without prior written
+This project's original source code, documentation, application interface,
+and project-specific model files may not be copied, modified,
+redistributed, published or used commercially without prior written
 permission from the author.
 
-Third-party libraries, frameworks, course materials, and other externally
-sourced components remain subject to their respective licenses and ownership.
+Third-party libraries, frameworks, course materials and externally sourced
+components remain subject to their respective licenses and ownership.
